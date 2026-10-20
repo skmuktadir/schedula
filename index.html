@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Schedula — AIUB Course &amp; Routine Explorer</title>
+  <title>Schedule — AIUB Course &amp; Routine Explorer</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -77,7 +77,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-bold text-lg tracking-tight dark:text-white text-slate-900">Schedula</span>
+              <span class="font-bold text-lg tracking-tight dark:text-white text-slate-900">Schedule</span>
               <span id="semesterBadge" class="hidden sm:inline-block text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Fall 2026-27</span>
             </div>
             <p class="text-xs font-mono dark:text-slate-400 text-slate-500">faculty · batch · course · room</p>
@@ -137,7 +137,7 @@
         Find <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">any</span> class routine in one search.
       </h1>
       <p class="text-xs sm:text-sm dark:text-slate-400 text-slate-600 leading-relaxed max-w-2xl mx-auto">
-        Search a faculty member, a freshman batch (<span class="font-mono text-amber-400">B1, B2...</span>), a course, or a room number. Schedula reads AIUB's offered-course report (<span id="activeFileName" class="font-mono dark:text-slate-300 text-slate-700">Offered Course Report-2.xlsx</span>) and lays out the full week for you — no login, no spreadsheet scrolling.
+        Search a faculty member, a freshman batch (<span class="font-mono text-amber-400">B1, B2...</span>), a course, or a room number. Schedule reads AIUB's offered-course report (<span id="activeFileName" class="font-mono dark:text-slate-300 text-slate-700">Offered Course Report-2.xlsx</span>) and lays out the full week for you — no login, no spreadsheet scrolling.
       </p>
 
       <!-- Search Input(s) Container -->
@@ -393,7 +393,7 @@
   <footer class="border-t dark:border-slate-800/80 border-slate-200 py-5 px-4 sm:px-6 text-xs dark:text-slate-400 text-slate-500 no-print">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
       <div class="flex flex-wrap items-center gap-3">
-        <span class="font-semibold dark:text-slate-300 text-slate-700">Schedula</span>
+        <span class="font-semibold dark:text-slate-300 text-slate-700">Schedule</span>
         <span>·</span>
         <span>AIUB Offered Course Routine &amp; Clash Explorer</span>
       </div>
@@ -418,18 +418,18 @@
     <div class="max-w-xl w-full rounded-2xl border border-slate-700 bg-slate-900 p-6 text-slate-200 shadow-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span class="text-amber-400 font-mono">⚡</span> Host Your Own Schedula on GitHub Pages (github.io)
+          <span class="text-amber-400 font-mono">⚡</span> Host Your Own Schedule on GitHub Pages (github.io)
         </h3>
         <button id="closeGithubModal" type="button" class="text-slate-400 hover:text-white font-mono">✕</button>
       </div>
       <div class="space-y-3 text-xs leading-relaxed text-slate-300">
         <p>This application is pre-loaded with your <span class="font-mono text-amber-300">Offered Course Report-2.xlsx</span> and ALSO supports automatic Excel loading from <span class="font-mono text-amber-300">data/Offered_Course_Report.xlsx</span> or via the <span class="font-mono text-amber-300">Load Excel</span> button.</p>
         <ol class="list-decimal list-inside space-y-2 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 font-mono text-[11px]">
-          <li>Create a new public repository on GitHub named <span class="text-amber-400">schedula</span>.</li>
+          <li>Create a new public repository on GitHub named <span class="text-amber-400">Schedule</span>.</li>
           <li>Upload <span class="text-emerald-400">index.html</span> (and optionally <span class="text-emerald-400">data/Offered_Course_Report.xlsx</span>) from the provided ZIP package.</li>
           <li>Go to <span class="text-white">Settings → Pages</span> in your GitHub repository.</li>
           <li>Under <span class="text-white">Build and deployment</span>, select <span class="text-amber-400">Deploy from a branch</span> → <span class="text-amber-400">main</span> → <span class="text-amber-400">/ (root)</span> and click <span class="text-white">Save</span>.</li>
-          <li>In ~60 seconds, your site will be live at <span class="text-amber-300">https://&lt;your-username&gt;.github.io/schedula/</span>!</li>
+          <li>In ~60 seconds, your site will be live at <span class="text-amber-300">https://&lt;your-username&gt;.github.io/Schedule/</span>!</li>
           <li>Whenever a new semester's Excel file comes out, either replace <span class="text-emerald-400">data/Offered_Course_Report.xlsx</span> in your repo OR click <span class="text-amber-400">Load Excel</span> in the top bar!</li>
         </ol>
       </div>
@@ -517,7 +517,7 @@
 
     function loadSavedRoutine() {
       try {
-        const raw = localStorage.getItem('schedula_my_routine_v1');
+        const raw = localStorage.getItem('Schedule_my_routine_v1');
         if (raw) {
           const arr = JSON.parse(raw);
           if (Array.isArray(arr)) {
@@ -532,7 +532,7 @@
 
     function saveMyRoutine() {
       try {
-        localStorage.setItem('schedula_my_routine_v1', JSON.stringify(Array.from(myRoutineClassIds)));
+        localStorage.setItem('Schedule_my_routine_v1', JSON.stringify(Array.from(myRoutineClassIds)));
       } catch (e) {
         // Ignore storage errors
       }
@@ -1561,7 +1561,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `schedula_export_${Date.now()}.csv`;
+      a.download = `Schedule_export_${Date.now()}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
