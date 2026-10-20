@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Schedule — AIUB Course &amp; Routine Explorer</title>
+  <title>Schedule – AIUB Course &amp; Routine Explorer</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -151,7 +151,7 @@
         Find <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">any</span> class routine in one search.
       </h1>
       <p class="text-xs sm:text-sm dark:text-slate-400 text-slate-600 leading-relaxed max-w-2xl mx-auto">
-        Search a faculty member, a freshman batch (<span class="font-mono text-amber-400">B1, B2...</span>), a course, or a room number. Schedule reads AIUB's offered-course report (<span id="activeFileName" class="font-mono dark:text-slate-300 text-slate-700">Offered Course Report-2.xlsx</span>) and lays out the full week for you — no login, no spreadsheet scrolling.
+        Search a faculty member, a freshman batch (<span class="font-mono text-amber-400">B1, B2...</span>), a course, or a room number. Schedule reads AIUB's offered-course report (<span id="activeFileName" class="font-mono dark:text-slate-300 text-slate-700">Offered Course Report-2.xlsx</span>) and lays out the full week for you – no login, no spreadsheet scrolling.
       </p>
 
       <!-- Search Input(s) Container -->
@@ -275,7 +275,7 @@
         <button id="btnToggleFilters" type="button" class="flex items-center gap-2 text-xs font-mono dark:text-slate-300 text-slate-700 hover:text-amber-400 transition-colors">
           <span id="filterArrow" class="text-amber-400">►</span>
           <span class="font-semibold tracking-wide">FILTERS</span>
-          <span class="text-slate-500">— department · status · day · type</span>
+          <span class="text-slate-500">– department · status · day · type</span>
           <span id="activeFilterCount" class="ml-1 px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-amber-400 border border-slate-700">Default</span>
         </button>
 
@@ -675,7 +675,7 @@
           if (r.dept && r.dept !== 'Unspecified') entry.depts.add(r.dept);
         }
 
-        const courseKey = r.code + ' — ' + r.baseTitle;
+        const courseKey = r.code + ' – ' + r.baseTitle;
         if (r.code || r.baseTitle) {
           if (!courseMap.has(courseKey)) {
             courseMap.set(courseKey, {
@@ -877,7 +877,7 @@
           return r.section.toUpperCase() === sel.value.toUpperCase();
         }
         if (sel.type === 'COURSE') {
-          const key = r.code + ' — ' + r.baseTitle;
+          const key = r.code + ' – ' + r.baseTitle;
           if (key !== sel.value && r.code !== sel.value && r.baseTitle !== sel.value) return false;
           if (tag === 'A' && selectedCourseSectionFilter !== 'ALL') {
             return r.section === selectedCourseSectionFilter;
@@ -912,7 +912,7 @@
       const wrap = document.getElementById('courseSectionFilterWrap');
       const select = document.getElementById('courseSectionSelect');
       if (appMode !== 'MY_ROUTINE' && sel && sel.type === 'COURSE') {
-        const matchingCourseRows = allRows.filter(r => (r.code + ' — ' + r.baseTitle) === sel.value);
+        const matchingCourseRows = allRows.filter(r => (r.code + ' – ' + r.baseTitle) === sel.value);
         const secs = Array.from(new Set(matchingCourseRows.map(r => r.section).filter(Boolean))).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
         if (secs.length > 1) {
           wrap.classList.remove('hidden');
@@ -1076,7 +1076,7 @@
             </div>
           </div>
 
-          <button type="button" data-jump-course="${escapeHtml(r.code + ' — ' + r.baseTitle)}" class="text-left group block w-full mb-1.5">
+          <button type="button" data-jump-course="${escapeHtml(r.code + ' – ' + r.baseTitle)}" class="text-left group block w-full mb-1.5">
             <div class="font-bold text-xs dark:text-white text-slate-900 group-hover:text-amber-400 leading-snug transition-colors">
               ${escapeHtml(r.baseTitle)}
             </div>
@@ -1281,10 +1281,10 @@
               ${isClash ? '<span class="ml-1 px-1 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px]">CLASH</span>' : ''}
             </td>
             <td class="py-2.5 px-3 font-mono whitespace-nowrap text-amber-400">
-              ${r.startTime ? `${escapeHtml(r.startTime)}–${escapeHtml(r.endTime)}` : '—'}
+              ${r.startTime ? `${escapeHtml(r.startTime)}–${escapeHtml(r.endTime)}` : '–'}
             </td>
             <td class="py-2.5 px-3">
-              <button type="button" data-jump-course="${escapeHtml(r.code + ' — ' + r.baseTitle)}" class="text-left hover:text-amber-400 font-medium dark:text-slate-200 text-slate-800">
+              <button type="button" data-jump-course="${escapeHtml(r.code + ' – ' + r.baseTitle)}" class="text-left hover:text-amber-400 font-medium dark:text-slate-200 text-slate-800">
                 ${escapeHtml(r.baseTitle)} <span class="font-mono text-slate-400">(${escapeHtml(r.code)})</span>
               </button>
             </td>
@@ -1292,7 +1292,7 @@
             <td class="py-2.5 px-3">
               ${r.faculties.length > 0
                 ? r.faculties.map(f => `<button type="button" data-jump-faculty="${escapeHtml(f)}" class="hover:text-amber-400 hover:underline mr-1">${escapeHtml(f)}</button>`).join(', ')
-                : '<span class="text-slate-500">—</span>'}
+                : '<span class="text-slate-500">–</span>'}
             </td>
             <td class="py-2.5 px-3 font-mono">
               <button type="button" data-jump-room="${escapeHtml(r.room)}" class="px-2 py-0.5 rounded dark:bg-slate-800 bg-slate-200 hover:text-amber-400">
