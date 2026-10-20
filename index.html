@@ -46,7 +46,21 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: rgba(245, 158, 11, 0.7);
     }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    @keyframes popIn{from{opacity:0;transform:scale(.97) translateY(-4px)}to{opacity:1;transform:none}}
+    .col-in{animation:fadeUp .4s cubic-bezier(.2,.8,.2,1) both}
+    .card-in{animation:fadeUp .35s cubic-bezier(.2,.8,.2,1) both}
+    .card-in:nth-child(2){animation-delay:.05s}.card-in:nth-child(3){animation-delay:.1s}.card-in:nth-child(4){animation-delay:.15s}.card-in:nth-child(n+5){animation-delay:.2s}
+    [id^=dropdown]:not(.hidden){animation:popIn .15s ease-out}
+    button{transition:transform .12s,background-color .2s,border-color .2s,color .2s}
+    button:active{transform:scale(.96)}
+    .today-col{box-shadow:0 0 0 2px rgba(245,158,11,.55)}
+    .kb-active{background:rgba(245,158,11,.18)}
+    [data-active="true"]{border-color:#f59e0b!important;background:rgba(245,158,11,.18)!important;color:#b45309!important}
+    html.dark [data-active="true"]{color:#fcd34d!important}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
     @media print {
+      .print-card, .print-card * { color:#000 !important; }
       .no-print {
         display: none !important;
       }
@@ -98,7 +112,7 @@
         <button id="btnMyRoutine" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border dark:border-slate-700 border-slate-300 dark:bg-slate-800/70 bg-slate-100 dark:text-slate-200 text-slate-700 hover:border-amber-500/50 transition-colors">
           <span class="text-amber-400">★</span>
           <span>My Routine</span>
-          <span id="myRoutineCount" class="font-mono text-[11px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300">0</span>
+          <span id="myRoutineCount" class="font-mono text-[11px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300">0</span>
         </button>
 
         <!-- Compare Two Toggle -->
@@ -183,6 +197,16 @@
         </div>
       </div>
 
+      <div class="mt-3 flex flex-wrap items-center justify-center gap-1.5 text-xs font-mono">
+        <span class="text-[11px] uppercase tracking-wider text-slate-400 mr-1">Search in:</span>
+        <button type="button" data-qtype="ALL" data-active="true" class="px-2.5 py-0.5 rounded-md border dark:border-slate-700 border-slate-300">Everything</button>
+        <button type="button" data-qtype="FACULTY" class="px-2.5 py-0.5 rounded-md border dark:border-slate-700 border-slate-300">Faculty</button>
+        <button type="button" data-qtype="SECTION" class="px-2.5 py-0.5 rounded-md border dark:border-slate-700 border-slate-300">Batch</button>
+        <button type="button" data-qtype="COURSE" class="px-2.5 py-0.5 rounded-md border dark:border-slate-700 border-slate-300">Course</button>
+        <button type="button" data-qtype="ROOM" class="px-2.5 py-0.5 rounded-md border dark:border-slate-700 border-slate-300">Room</button>
+        <span class="hidden sm:inline text-slate-500 ml-2">Press <kbd class="px-1 rounded border dark:border-slate-700 border-slate-300">/</kbd> to search · ↑↓ Enter to pick</span>
+      </div>
+
       <!-- Quick Batch Presets -->
       <div class="mt-4">
         <div class="flex flex-wrap items-center justify-center gap-1.5 mb-2">
@@ -252,7 +276,7 @@
           <span id="filterArrow" class="text-amber-400">►</span>
           <span class="font-semibold tracking-wide">FILTERS</span>
           <span class="text-slate-500">— department · status · day · type</span>
-          <span id="activeFilterCount" class="ml-1 px-1.5 py-0.2 rounded bg-slate-800 text-[10px] text-amber-400 border border-slate-700">Default</span>
+          <span id="activeFilterCount" class="ml-1 px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-amber-400 border border-slate-700">Default</span>
         </button>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -344,6 +368,7 @@
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <div id="clashStatusBadge" class="text-xs font-mono px-2.5 py-1 rounded-lg"></div>
+        <button id="btnCopyLink" type="button" class="text-xs font-mono px-2.5 py-1 rounded-lg border dark:border-slate-700 border-slate-300 hover:border-amber-500/50 no-print" title="Copy a shareable link to this view">🔗 Copy link</button>
         <button id="btnClearRoutine" type="button" class="hidden text-xs font-mono px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors no-print">
           Clear My Routine
         </button>
@@ -486,6 +511,8 @@
       types: new Set(['Theory', 'Lab', 'Unspecified'])
     };
     let allDeptsList = [];
+    let allTypesList = ['Theory', 'Lab', 'Unspecified'];
+    let searchTypeFilter = 'ALL';
     let allStatusesList = ['Open', 'Freshman', 'Reserved', 'Cancel', 'Closed'];
 
     // View & Sort State
@@ -503,6 +530,15 @@
       if (ampm === 'PM' && hh !== 12) hh += 12;
       if (ampm === 'AM' && hh === 12) hh = 0;
       return hh * 60 + mm;
+    }
+
+    function setMode(mode) {
+      appMode = mode;
+      const cmp = mode === 'COMPARE';
+      document.getElementById('searchContainerB').classList.toggle('hidden', !cmp);
+      document.getElementById('badgeSearchA').classList.toggle('hidden', !cmp);
+      document.getElementById('btnCompareToggle').dataset.active = String(cmp);
+      document.getElementById('btnMyRoutine').dataset.active = String(mode === 'MY_ROUTINE');
     }
 
     function showToast(msg) {
@@ -607,11 +643,16 @@
       const deptSet = new Set();
       rows.forEach(r => deptSet.add(r.dept));
       allDeptsList = Array.from(deptSet).sort();
+      allTypesList = Array.from(new Set(['Theory', 'Lab', 'Unspecified', ...rows.map(r => r.type)]));
+      activeFilters.types = new Set(allTypesList);
+      allStatusesList = Array.from(new Set(['Open', 'Freshman', 'Reserved', 'Cancel', 'Closed', ...rows.map(r => r.status)]));
+      activeFilters.statuses = new Set(['Open', 'Freshman', 'Reserved'].filter(x => allStatusesList.includes(x)));
       activeFilters.depts = new Set(allDeptsList);
 
       buildSearchIndex();
       renderFilterCheckboxes();
       renderDiagnostics();
+      if (!document.getElementById('freeRoomsPanel').classList.contains('hidden')) setTimeout(renderFreeRooms, 0);
       renderBatchPills();
       renderSchedule();
     }
@@ -698,7 +739,7 @@
           : 'px-3 py-1 rounded-full text-xs font-mono dark:bg-slate-800/90 bg-slate-200/80 dark:text-slate-300 text-slate-700 border dark:border-slate-700 border-slate-300 hover:border-amber-500/60 hover:text-amber-400 transition-all';
         btn.textContent = `${batchName} batch`;
         btn.addEventListener('click', () => {
-          if (appMode === 'MY_ROUTINE') appMode = 'SINGLE';
+          if (appMode === 'MY_ROUTINE') setMode('SINGLE');
           selectEntity('A', { type: 'SECTION', value: batchName, label: `${batchName} batch` });
         });
         container.appendChild(btn);
@@ -784,7 +825,7 @@
 
       const typeContainer = document.getElementById('filterTypeList');
       typeContainer.innerHTML = '';
-      ['Theory', 'Lab', 'Unspecified'].forEach(tp => {
+      allTypesList.forEach(tp => {
         const lbl = document.createElement('label');
         lbl.className = 'flex items-center gap-2 cursor-pointer dark:text-slate-300 text-slate-700 hover:text-amber-400';
         const cb = document.createElement('input');
@@ -815,7 +856,7 @@
         activeFilters.statuses.has('Reserved');
       const isAllDepts = activeFilters.depts.size === allDeptsList.length;
       const isAllDays = activeFilters.days.size === DAYS_ORDER.length;
-      const isAllTypes = activeFilters.types.size === 3;
+      const isAllTypes = activeFilters.types.size === allTypesList.length;
 
       if (isDefaultStatus && isAllDepts && isAllDays && isAllTypes) {
         badge.textContent = 'Default';
@@ -958,11 +999,14 @@
         const schedCount = combinedRows.filter(r => r.isScheduled).length;
         const distinctCourses = new Set(combinedRows.map(r => r.code)).size;
         const distinctRooms = new Set(combinedRows.map(r => r.room).filter(Boolean)).size;
-        bannerMeta.textContent = `${schedCount} sessions · ${distinctCourses} courses · ${distinctRooms} rooms`;
+        const hrs = (combinedRows.filter(r => r.isScheduled).reduce((t, r) => t + (r.endMin - r.startMin), 0) / 60).toFixed(1);
+        bannerMeta.textContent = `${schedCount} sessions · ${hrs} hrs/week · ${distinctCourses} courses · ${distinctRooms} rooms`;
       }
 
       const scheduledRows = combinedRows.filter(r => r.isScheduled);
-      const { clashes, clashingRowIds } = detectClashes(scheduledRows);
+      // Sections of one course are alternatives, not simultaneous: don't flag them as clashes
+      const skipClash = appMode === 'SINGLE' && selectionA && (selectionA.type === 'COURSE' || selectionA.type === 'TEXT');
+      const { clashes, clashingRowIds } = skipClash ? { clashes: [], clashingRowIds: new Set() } : detectClashes(scheduledRows);
 
       const clashBadge = document.getElementById('clashStatusBadge');
       const clashBox = document.getElementById('clashDetailsBox');
@@ -1018,14 +1062,14 @@
       const seatColor = seatRatio >= 1 ? 'text-rose-400' : seatRatio >= 0.85 ? 'text-amber-400' : 'text-emerald-400';
 
       return `
-        <div class="rounded-xl border ${cardBorder} ${accentBar} p-3 transition-all hover:border-slate-600 print-card">
+        <div class="rounded-xl border ${cardBorder} ${accentBar} p-3 card-in transition-all hover:border-slate-600 hover:-translate-y-0.5 hover:shadow-lg print-card">
           <div class="flex items-start justify-between gap-1.5 mb-1">
             <div class="flex flex-wrap items-center gap-1">
-              ${appMode === 'COMPARE' ? `<span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold ${isSourceB ? 'bg-violet-500/20 text-violet-300' : 'bg-amber-500/20 text-amber-300'}">${r.sourceTag}</span>` : ''}
+              ${appMode === 'COMPARE' ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${isSourceB ? 'bg-violet-500/20 text-violet-300' : 'bg-amber-500/20 text-amber-300'}">${r.sourceTag}</span>` : ''}
               <span class="font-mono text-[11px] font-semibold ${isLab ? 'text-sky-400' : 'text-amber-400'}">${escapeHtml(r.startTime)}–${escapeHtml(r.endTime)}</span>
             </div>
             <div class="flex items-center gap-1">
-              ${isClash ? `<span class="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] font-bold">CLASH</span>` : ''}
+              ${isClash ? `<span class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] font-bold">CLASH</span>` : ''}
               <button type="button" data-pin-classid="${escapeHtml(r.classId)}" class="no-print px-1.5 py-0.5 rounded text-[10px] font-mono border transition-colors ${isPinned ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold' : 'dark:border-slate-700 border-slate-300 dark:text-slate-400 text-slate-600 hover:border-amber-400 hover:text-amber-300'}" title="Add/Remove section ${escapeHtml(r.classId)} in My Routine">
                 ${isPinned ? '★ Pinned' : '+ Routine'}
               </button>
@@ -1078,7 +1122,7 @@
         const browseBtn = document.getElementById('btnEmptyRoutineBrowse');
         if (browseBtn) {
           browseBtn.addEventListener('click', () => {
-            appMode = 'SINGLE';
+            setMode('SINGLE');
             selectEntity('A', { type: 'SECTION', value: 'B1', label: 'B1 batch' });
           });
         }
@@ -1096,17 +1140,19 @@
       const colCount = Math.max(1, Math.min(activeDays.length, 7));
       container.className = GRID_COLS_MAP[colCount] || GRID_COLS_MAP[6];
 
-      activeDays.forEach(day => {
+      activeDays.forEach((day, di) => {
         const dayRows = scheduledRows
           .filter(r => r.day === day)
           .sort((a, b) => a.startMin - b.startMin || a.code.localeCompare(b.code));
 
         const col = document.createElement('div');
         col.className = 'rounded-2xl border dark:border-slate-800/90 border-slate-200 dark:bg-slate-900/50 bg-white flex flex-col overflow-hidden print-card';
+        col.classList.add('col-in'); col.style.animationDelay = (di * 60) + 'ms';
+        if (day === DAYS_ORDER[new Date().getDay()]) col.classList.add('today-col');
 
         const headerHtml = `
           <div class="px-3.5 py-2.5 border-b dark:border-slate-800 border-slate-200 dark:bg-slate-900/90 bg-slate-50 flex items-center justify-between">
-            <span class="font-bold text-xs tracking-wide uppercase dark:text-slate-200 text-slate-800">${day}</span>
+            <span class="font-bold text-xs tracking-wide uppercase dark:text-slate-200 text-slate-800">${day}${day === DAYS_ORDER[new Date().getDay()] ? '<span class="ml-2 text-[10px] font-mono text-amber-400">● TODAY</span>' : ''}</span>
             <span class="font-mono text-[11px] px-2 py-0.5 rounded-full ${dayRows.length > 0 ? 'bg-amber-500/15 text-amber-400' : 'dark:bg-slate-800 bg-slate-200 text-slate-500'}">${dayRows.length}</span>
           </div>
         `;
@@ -1232,7 +1278,7 @@
           <tr class="${isClash ? 'bg-rose-950/30' : 'hover:bg-slate-800/40'} transition-colors">
             <td class="py-2.5 px-3 font-mono whitespace-nowrap">
               ${r.day ? escapeHtml(r.day) : '<span class="text-slate-500">Unscheduled</span>'}
-              ${isClash ? '<span class="ml-1 px-1 py-0.2 rounded bg-rose-500/20 text-rose-300 text-[10px]">CLASH</span>' : ''}
+              ${isClash ? '<span class="ml-1 px-1 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px]">CLASH</span>' : ''}
             </td>
             <td class="py-2.5 px-3 font-mono whitespace-nowrap text-amber-400">
               ${r.startTime ? `${escapeHtml(r.startTime)}–${escapeHtml(r.endTime)}` : '—'}
@@ -1328,10 +1374,68 @@
       return 'bg-rose-500/20 text-rose-300 border border-rose-500/30';
     }
 
+    // ---- Smart search: normalisation + aliases + typo tolerance ----
+const ALIASES = { mohammad:'muhammad', mohammed:'muhammad', muhammed:'muhammad', mohamed:'muhammad', mohd:'muhammad', md:'muhammad', mst:'mst', prof:'professor' };
+function normText(t) {
+  return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean).map(w => ALIASES[w] || w).join(' ');
+}
+// Damerau-Levenshtein (handles swapped letters like "muktadri")
+function editDist(a, b) {
+  const m = a.length, n = b.length;
+  if (Math.abs(m - n) > 3) return 9;
+  let prev2 = null, prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      const c = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + c);
+      if (prev2 && i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) cur[j] = Math.min(cur[j], prev2[j - 2] + 1);
+    }
+    prev2 = prev; prev = cur;
+  }
+  return prev[n];
+}
+function tokenScore(qt, tt) {
+  if (tt === qt) return 100;
+  if (tt.startsWith(qt)) return 90;
+  if (qt.length >= 3 && tt.includes(qt)) return 65;
+  const allow = qt.length >= 7 ? 2 : qt.length >= 4 ? 1 : 0;
+  if (allow) {
+    const d = Math.min(editDist(qt, tt), editDist(qt, tt.slice(0, qt.length)));
+    if (d <= allow) return 62 - d * 8;
+  }
+  return 0;
+}
+// 0 = no match. All query words must match some word of the text (any order, typos tolerated).
+function fuzzyScore(query, text) {
+  const qs = normText(query).split(' ').filter(Boolean);
+  const nt = normText(text), ts = nt.split(' ');
+  if (!qs.length) return 0;
+  let total = 0;
+  for (const qt of qs) {
+    let best = 0;
+    for (const tt of ts) best = Math.max(best, tokenScore(qt, tt));
+    if (!best) return 0;
+    total += best;
+  }
+  let sc = total / qs.length;
+  if (nt.includes(normText(query))) sc += 10;
+  if (nt.startsWith(normText(query))) sc += 5;
+  return Math.min(sc, 100);
+}
+
+
     function buildSuggestions(query) {
       const q = query.trim().toLowerCase();
       const results = [];
 
+      if (!q && searchTypeFilter !== 'ALL') {
+        const src = { FACULTY: searchIndex.faculties, SECTION: searchIndex.sections, COURSE: searchIndex.courses, ROOM: searchIndex.rooms }[searchTypeFilter] || [];
+        return src.slice(0, 60).map(x => ({ type: searchTypeFilter, value: x.value,
+          label: searchTypeFilter === 'SECTION' ? x.value + ' batch' : searchTypeFilter === 'ROOM' ? 'Room ' + x.value : x.value,
+          meta: x.sections ? x.sections.size + ' sections' : x.count + ' sessions' }));
+      }
       if (!q) {
         searchIndex.sections.filter(s => ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'L1'].includes(s.value)).forEach(s => {
           results.push({ type: 'SECTION', value: s.value, label: `${s.value} batch`, meta: `${s.count} sessions` });
@@ -1360,26 +1464,28 @@
 
       searchIndex.faculties.forEach(f => {
         const fLower = f.value.toLowerCase();
-        if (fLower.includes(q)) {
+        const fs = fuzzyScore(q, f.value);
+        if (fs > 0) {
           results.push({
             type: 'FACULTY',
             value: f.value,
             label: f.value,
             meta: `${f.count} sessions · ${f.courses.size} courses`,
-            score: fLower.startsWith(q) ? 85 : 70
+            score: fs * 0.9
           });
         }
       });
 
       searchIndex.courses.forEach(c => {
         const cLower = c.value.toLowerCase();
-        if (cLower.includes(q)) {
+        const cs = fuzzyScore(q, c.value);
+        if (cs > 0) {
           results.push({
             type: 'COURSE',
             value: c.value,
             label: c.value,
             meta: `${c.sections.size} sections · ${c.count} sessions`,
-            score: c.code.toLowerCase().startsWith(q) ? 90 : 75
+            score: c.code.toLowerCase().startsWith(q) ? 95 : cs * 0.8
           });
         }
       });
@@ -1409,7 +1515,7 @@
         }
       });
 
-      return results.sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 25);
+      return results.sort((a, b) => (b.score || 0) - (a.score || 0)).filter(r => searchTypeFilter === 'ALL' || r.type === searchTypeFilter).slice(0, 40);
     }
 
     function renderDropdown(target, query) {
@@ -1417,7 +1523,7 @@
       const items = buildSuggestions(query);
 
       if (items.length === 0) {
-        dropdown.innerHTML = `<div class="p-3.5 text-xs font-mono text-slate-400">No matching faculty, batch, course, or room found. Press Enter to search text "${escapeHtml(query)}".</div>`;
+        dropdown.innerHTML = `<div class="p-3.5 text-xs font-mono text-slate-400">No match even after ignoring dots/spelling differences. Press Enter to search text "${escapeHtml(query)}".</div>`;
         dropdown.classList.remove('hidden');
         return;
       }
@@ -1438,6 +1544,7 @@
       selectedCourseSectionFilter = 'ALL';
       if (target === 'A') {
         selectionA = entity;
+        try { history.replaceState(null, '', '#' + new URLSearchParams({ t: entity.type, v: entity.value, l: entity.label })); } catch (e) {}
         const inputA = document.getElementById('searchInputA');
         inputA.value = entity.label;
         document.getElementById('clearSearchA').classList.remove('hidden');
@@ -1513,6 +1620,7 @@
           document.getElementById('activeFileName').textContent = fileName;
           document.getElementById('semesterBadge').textContent = firstSheet;
           initializeDataset(parsed, `${fileName} (${firstSheet})`);
+          if (!getRowsForEntity(selectionA, 'A').length && searchIndex.sections[0]) selectEntity('A', { type: 'SECTION', value: searchIndex.sections[0].value, label: searchIndex.sections[0].value + ' batch' });
           if (notifyUser) {
             showToast(`✓ Loaded ${parsed.length.toLocaleString()} rows from ${fileName}`);
           }
@@ -1581,6 +1689,41 @@
       loadSavedRoutine();
       loadEmbeddedData();
 
+      try { if (localStorage.getItem('Schedule_theme') === 'light') document.documentElement.classList.remove('dark'); } catch (e) {}
+      try {
+        const h = new URLSearchParams(location.hash.slice(1));
+        if (h.get('t') && h.get('v')) selectEntity('A', { type: h.get('t'), value: h.get('v'), label: h.get('l') || h.get('v') });
+      } catch (e) {}
+
+      // Keyboard navigation in the suggestion lists (registered before the Enter handlers below)
+      ['A', 'B'].forEach(t => {
+        const inp = document.getElementById('searchInput' + t), dd = document.getElementById('dropdown' + t);
+        inp.addEventListener('keydown', e => {
+          if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) return;
+          const items = [...dd.querySelectorAll('[data-select-target]')];
+          if (dd.classList.contains('hidden') || !items.length) { if (e.key === 'ArrowDown') renderDropdown(t, ''); return; }
+          let i = items.findIndex(x => x.classList.contains('kb-active'));
+          if (e.key === 'Enter') { if (i >= 0) { e.preventDefault(); e.stopImmediatePropagation(); items[i].click(); } return; }
+          e.preventDefault();
+          if (i >= 0) items[i].classList.remove('kb-active');
+          i = e.key === 'ArrowDown' ? (i + 1) % items.length : (i - 1 + items.length) % items.length;
+          items[i].classList.add('kb-active'); items[i].scrollIntoView({ block: 'nearest' });
+        });
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === '/' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); document.getElementById('searchInputA').focus(); }
+      });
+      const PH = { ALL: 'Search faculty, batch (B1), course, or room (5108)...', FACULTY: 'Type a faculty name...', SECTION: 'Type a batch or section (e.g. B1, S4-A)...', COURSE: 'Type a course name or code...', ROOM: 'Type a room number...' };
+      document.querySelectorAll('[data-qtype]').forEach(b => b.addEventListener('click', () => {
+        searchTypeFilter = b.dataset.qtype;
+        document.querySelectorAll('[data-qtype]').forEach(x => x.dataset.active = String(x === b));
+        const inp = document.getElementById('searchInputA');
+        inp.placeholder = PH[searchTypeFilter]; inp.value = ''; inp.focus(); renderDropdown('A', '');
+      }));
+      document.getElementById('btnCopyLink').addEventListener('click', () => {
+        (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject()).then(() => showToast('🔗 Link copied')).catch(() => showToast('Copy the link from the address bar'));
+      });
+
       document.getElementById('searchInputA').value = selectionA.label;
       document.getElementById('clearSearchA').classList.remove('hidden');
 
@@ -1595,7 +1738,7 @@
       inputA.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && inputA.value.trim()) {
           const suggestions = buildSuggestions(inputA.value);
-          if (appMode === 'MY_ROUTINE') appMode = 'SINGLE';
+          if (appMode === 'MY_ROUTINE') setMode('SINGLE');
           if (suggestions.length > 0) {
             selectEntity('A', suggestions[0]);
           } else {
@@ -1659,7 +1802,7 @@
           const type = selectBtn.getAttribute('data-select-type');
           const value = selectBtn.getAttribute('data-select-value');
           const label = selectBtn.getAttribute('data-select-label');
-          if (appMode === 'MY_ROUTINE') appMode = 'SINGLE';
+          if (appMode === 'MY_ROUTINE') setMode('SINGLE');
           selectEntity(target, { type, value, label });
           return;
         }
@@ -1683,7 +1826,7 @@
         if (roomJump) {
           const rm = roomJump.getAttribute('data-jump-room');
           if (rm && rm !== 'TBA' && rm !== '-') {
-            if (appMode === 'MY_ROUTINE') appMode = 'SINGLE';
+            if (appMode === 'MY_ROUTINE') setMode('SINGLE');
             selectEntity('A', { type: 'ROOM', value: rm, label: `Room ${rm}` });
             showToast(`Viewing Room ${rm} weekly schedule`);
           }
@@ -1694,7 +1837,7 @@
         if (facJump) {
           const fac = facJump.getAttribute('data-jump-faculty');
           if (fac && fac !== '-') {
-            if (appMode === 'MY_ROUTINE') appMode = 'SINGLE';
+            if (appMode === 'MY_ROUTINE') setMode('SINGLE');
             selectEntity('A', { type: 'FACULTY', value: fac, label: fac });
             showToast(`Viewing ${fac}`);
           }
@@ -1705,7 +1848,7 @@
         if (courseJump) {
           const crs = courseJump.getAttribute('data-jump-course');
           if (crs) {
-            if (appMode === 'MY_ROUTINE') appMode = 'SINGLE';
+            if (appMode === 'MY_ROUTINE') setMode('SINGLE');
             selectEntity('A', { type: 'COURSE', value: crs, label: crs });
           }
           return;
@@ -1727,7 +1870,7 @@
           if (act === 'status-all') activeFilters.statuses = new Set(allStatusesList);
           if (act === 'day-all') activeFilters.days = new Set(DAYS_ORDER);
           if (act === 'day-none') activeFilters.days = new Set();
-          if (act === 'type-all') activeFilters.types = new Set(['Theory', 'Lab', 'Unspecified']);
+          if (act === 'type-all') activeFilters.types = new Set(allTypesList);
           renderFilterCheckboxes();
           renderSchedule();
           return;
@@ -1764,38 +1907,13 @@
         renderSchedule();
       });
 
-      const btnCompare = document.getElementById('btnCompareToggle');
-      btnCompare.addEventListener('click', () => {
-        const containerB = document.getElementById('searchContainerB');
-        const badgeA = document.getElementById('badgeSearchA');
-        if (appMode === 'COMPARE') {
-          appMode = 'SINGLE';
-          containerB.classList.add('hidden');
-          badgeA.classList.add('hidden');
-          btnCompare.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border dark:border-slate-700 border-slate-300 dark:bg-slate-800/70 bg-slate-100 dark:text-slate-200 text-slate-700 hover:border-amber-500/50 transition-colors';
-        } else {
-          appMode = 'COMPARE';
-          containerB.classList.remove('hidden');
-          badgeA.classList.remove('hidden');
-          btnCompare.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-amber-500 bg-amber-500/20 text-amber-300 transition-colors';
-          if (!selectionB) {
-            selectEntity('B', { type: 'SECTION', value: 'B2', label: 'B2 batch' });
-          }
-        }
-        renderSchedule();
+      document.getElementById('btnCompareToggle').addEventListener('click', () => {
+        setMode(appMode === 'COMPARE' ? 'SINGLE' : 'COMPARE');
+        if (appMode === 'COMPARE' && !selectionB) selectEntity('B', { type: 'SECTION', value: 'B2', label: 'B2 batch' });
+        else renderSchedule();
       });
-
-      const btnMyRoutine = document.getElementById('btnMyRoutine');
-      btnMyRoutine.addEventListener('click', () => {
-        if (appMode === 'MY_ROUTINE') {
-          appMode = 'SINGLE';
-          btnMyRoutine.classList.remove('border-amber-500', 'bg-amber-500/20');
-        } else {
-          appMode = 'MY_ROUTINE';
-          document.getElementById('searchContainerB').classList.add('hidden');
-          document.getElementById('badgeSearchA').classList.add('hidden');
-          btnMyRoutine.classList.add('border-amber-500', 'bg-amber-500/20');
-        }
+      document.getElementById('btnMyRoutine').addEventListener('click', () => {
+        setMode(appMode === 'MY_ROUTINE' ? 'SINGLE' : 'MY_ROUTINE');
         renderSchedule();
       });
 
@@ -1850,12 +1968,11 @@
 
       document.getElementById('btnThemeToggle').addEventListener('click', () => {
         document.documentElement.classList.toggle('dark');
+        try { localStorage.setItem('Schedule_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
       });
 
       document.getElementById('btnResetHome').addEventListener('click', () => {
-        appMode = 'SINGLE';
-        document.getElementById('searchContainerB').classList.add('hidden');
-        document.getElementById('badgeSearchA').classList.add('hidden');
+        setMode('SINGLE');
         selectEntity('A', { type: 'SECTION', value: 'B1', label: 'B1 batch' });
       });
 
